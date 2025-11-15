@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Ktor Charts MVP</title>
+    <link rel="stylesheet" href="/styles.css"/>
+    <!-- Chart.js с CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body>
+<header class="container">
+    <h1>Ktor Charts MVP</h1>
+    <p>Попробуй менять цвета/формы ниже и обновляй график.</p>
+</header>
+
+<main class="container">
+    <section class="controls">
+        <div class="control">
+            <label>Основной цвет: <input id="primaryColor" type="color" value="#4e79a7"/></label>
+        </div>
+        <div class="control">
+            <label>Второй цвет: <input id="secondaryColor" type="color" value="#f28e2b"/></label>
+        </div>
+        <div class="control">
+            <label>Форма точек:
+                <select id="pointStyle">
+                    <option value="circle" selected>circle</option>
+                    <option value="rect">rect</option>
+                    <option value="triangle">triangle</option>
+                    <option value="cross">cross</option>
+                    <option value="star">star</option>
+                    <option value="line">line</option>
+                    <option value="dash">dash</option>
+                </select>
+            </label>
+        </div>
+        <div class="control">
+            <label>Кол-во точек: <input id="pointsCount" type="number" min="10" max="500" step="10" value="80"/></label>
+        </div>
+        <div class="control">
+            <label>Серии (через запятую): <input id="seriesList" type="text" value="1,2"/></label>
+        </div>
+        <button id="reloadBtn">Перестроить</button>
+    </section>
+
+    <section class="chart-wrap">
+        <canvas id="mainChart"></canvas>
+    </section>
+</main>
+
+<footer class="container">
+    <small>UI отдан Ktor'ом, данные — из <code>/api/series</code>. Лёгкая темизация через CSS-переменные и JS-конфиг.</small>
+</footer>
+
+<script src="/app.js" type="module"></script>
+</body>
+</html>
