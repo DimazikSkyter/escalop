@@ -1,10 +1,11 @@
 package ru.escalop.ru.escalop.common.entity
 
 import jakarta.persistence.*
+import ru.escalop.ru.escalop.common.model.AnalysisType
 
 @Entity
 @Table(name = "analysis_types")
-class AnalysisType(
+class AnalysisTypeEntity(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,6 +22,10 @@ class AnalysisType(
     open var description: String? = null
 ) {
     // Обратная связь к снапшотам (опционально, но полезно)
-    @OneToMany(mappedBy = "analysisType", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "analysisTypeEntity", fetch = FetchType.LAZY)
     open val snapshots: MutableList<Snapshot> = mutableListOf()
+
+    fun toModel(): AnalysisType {
+        return AnalysisType.valueOf(code)
+    }
 }

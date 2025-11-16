@@ -5,8 +5,8 @@ import java.time.LocalDate
 data class Metric(
     val name: String,
     val value: Double,
-    val minReferenceValue: Double,
-    val maxReferenceValue: Double,
+    val minReferenceValue: Double?,
+    val maxReferenceValue: Double?,
 )
 
 enum class AnalysisType {

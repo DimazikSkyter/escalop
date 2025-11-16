@@ -4,7 +4,7 @@ interface RemoteStorage {
 
     suspend fun readData(path: String): String?
 
-    suspend fun writeData(path: String, data: String): Unit
+    suspend fun writeData(path: String, data: ByteArray): Unit
 
     companion object {
         val NONE = object : RemoteStorage {
@@ -12,7 +12,7 @@ interface RemoteStorage {
                 TODO("Not yet implemented")
             }
 
-            override suspend fun writeData(path: String, data: String) {
+            override suspend fun writeData(path: String, data: ByteArray) {
                 TODO("Not yet implemented")
             }
         }

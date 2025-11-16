@@ -18,10 +18,10 @@ class Snapshot(
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "type_id", nullable = false)
-    open var analysisType: AnalysisType,
+    open var analysisTypeEntity: AnalysisTypeEntity,
 
-    @Column(name = "local_date", nullable = false)
-    open var localDate: LocalDate,
+    @Column(name = "local_date", nullable = true)
+    open var localDate: LocalDate?,
 
     @Column(name = "document_name", nullable = false, length = 512)
     open var documentName: String,
@@ -31,7 +31,7 @@ class Snapshot(
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    open var user: User,
+    open var userEntity: UserEntity,
 
     /**
      * metrics as json with can search by xpath

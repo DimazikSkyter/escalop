@@ -13,7 +13,7 @@ class HealthDataWarnValidatorImpl (
     val validationStrategy: Map<String, Function<HealthDataResult, Boolean>>
 ): HealthDataValidator {
 
-    val logger = LoggerFactory.getLogger(HealthDataWarnValidatorImpl::class.java)!!
+    private val logger = LoggerFactory.getLogger(HealthDataWarnValidatorImpl::class.java)!!
 
     override fun validate(result: HealthDataResult) {
         validationStrategy.map {

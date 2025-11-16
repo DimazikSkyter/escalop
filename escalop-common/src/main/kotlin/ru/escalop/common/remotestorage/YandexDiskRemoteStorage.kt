@@ -59,7 +59,7 @@ class YandexDiskRemoteStorage private constructor(
         }
     }
 
-    override suspend fun writeData(path: String, data: String) {
+    override suspend fun writeData(path: String, data: ByteArray) {
         val fullPath: String = properties.escalopPath + path
         val href = getUploadHref(fullPath, true)
 

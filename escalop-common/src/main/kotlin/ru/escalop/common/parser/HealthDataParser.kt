@@ -1,5 +1,6 @@
 package ru.escalop.ru.escalop.common.parser
 
+import ru.escalop.ru.escalop.common.model.AnalysisType
 import ru.escalop.ru.escalop.common.model.HealthDataResult
 import ru.escalop.ru.escalop.common.model.Metric
 import java.time.LocalDate
@@ -24,6 +25,7 @@ class MockHealthDataParser (
         return HealthDataResult(
             name,
             LocalDate.now(),
+            AnalysisType.ANOTHER,
             fakeMetrics
         )
     }
