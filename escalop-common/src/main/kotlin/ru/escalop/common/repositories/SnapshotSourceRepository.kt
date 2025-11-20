@@ -1,10 +1,9 @@
-package ru.escalop.ru.escalop.common.repositories
+package ru.escalop.common.repositories
 
 import jakarta.persistence.EntityManager
 import jakarta.persistence.criteria.Predicate
-import ru.escalop.ru.escalop.common.entity.AnalysisTypeEntity
-import ru.escalop.ru.escalop.common.entity.Snapshot
-import ru.escalop.ru.escalop.common.entity.SnapshotSource
+import ru.escalop.common.entity.Snapshot
+import ru.escalop.common.entity.SnapshotSource
 
 interface SnapshotSourceRepository {
     fun save(entity: SnapshotSource): SnapshotSource
@@ -12,11 +11,11 @@ interface SnapshotSourceRepository {
     fun getSourceBySnapshot(snapshot: Snapshot): SnapshotSource
 }
 
-class SnapshotSourceRepositoryImp (
+class SnapshotSourceRepositoryImpl (
     private val em: EntityManager
 ) : SnapshotSourceRepository {
     override fun save(entity: SnapshotSource): SnapshotSource {
-        return if (entity.snapshotId == null) {
+        return if (entity.id == null) {
             em.persist(entity)
             entity
         } else {

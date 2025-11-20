@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: escalop-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: escalop
+      POSTGRES_USER: escalop
+      POSTGRES_PASSWORD: escalop
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  liquibase:
+    image: liquibase/liquibase:4.29
+    container_name: escalop-liquibase
+    depends_on:
+      - postgres
+    working_dir: /liquibase
+    volumes:
+      - ./db/changelog:/liquibase/changelog
+      - ./db/liquibase.properties:/liquibase/liquibase.properties
+    entrypoint: [ "liquibase" ]
+    command: ["update"]
+
+volumes:
+  postgres_data:

@@ -1,6 +1,6 @@
 package ru.escalop.app.storage
 
-import ru.escalop.ru.escalop.common.model.AnalysisType
+import ru.escalop.common.model.AnalysisType
 
 class StorageNamesCoordinator {
 

@@ -1,8 +1,8 @@
 package ru.escalop.app.service
 
-import ru.escalop.ru.escalop.common.model.AnalysisType
-import ru.escalop.ru.escalop.common.model.HealthDataResult
-import ru.escalop.ru.escalop.common.model.StorageHealthPart
+import ru.escalop.common.model.AnalysisType
+import ru.escalop.common.model.HealthDataResult
+import ru.escalop.common.model.StorageHealthPart
 
 
 class DataUnionService {

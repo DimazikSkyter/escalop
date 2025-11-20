@@ -1,4 +1,4 @@
-package ru.escalop.ru.escalop.common.entity
+package ru.escalop.common.entity
 
 import jakarta.persistence.*
 
@@ -11,13 +11,13 @@ class UserEntity(
     @Column(name = "id")
     open var id: Long? = null,
 
-    @Column(name = "internal_key", nullable = false, unique = true, length = 128)
+    @Column(name = "internal_key", nullable = false, unique = true, length = 255)
     open var internalKey: String,
 
-    @Column(name = "login", nullable = false, unique = true, length = 128)
+    @Column(name = "login", nullable = false, unique = true, length = 255)
     open var login: String,
 
-    @Column(name = "password", nullable = false, length = 256)
+    @Column(name = "password", nullable = false, length = 255)
     open var password: String
 ) {
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY)

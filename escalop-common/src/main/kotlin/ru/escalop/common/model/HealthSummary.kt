@@ -1,6 +1,6 @@
-package ru.escalop.ru.escalop.common.model
+package ru.escalop.common.model
 
-import ru.escalop.ru.escalop.common.entity.SnapshotSource
+import ru.escalop.common.entity.SnapshotSource
 import com.fasterxml.jackson.databind.ObjectMapper
 
 data class HealthSummary(

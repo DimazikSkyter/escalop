@@ -1,0 +1,124 @@
+databaseChangeLog:
+  - changeSet:
+      id: 10-insert-test-user
+      author: escalop
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 1
+              - column:
+                  name: internal_key
+                  value: "test-internal-key"
+              - column:
+                  name: login
+                  value: "test_user"
+              - column:
+                  name: password
+                  value: "test_password"   # для тестов можно plain-text
+
+  - changeSet:
+      id: 11-insert-test-analysis-types
+      author: escalop
+      changes:
+        - insert:
+            tableName: analysis_types
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 1
+              - column:
+                  name: code
+                  value: "BLOOD_GENERAL"
+              - column:
+                  name: description
+                  value: "Общий анализ крови"
+        - insert:
+            tableName: analysis_types
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 2
+              - column:
+                  name: code
+                  value: "BLOOD_CHEMISTIC"
+              - column:
+                  name: description
+                  value: "Биохимический анализ крови"
+        - insert:
+            tableName: analysis_types
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 3
+              - column:
+                  name: code
+                  value: "ULTRASOUND"
+              - column:
+                  name: description
+                  value: "Ультразвуковой анализ"
+
+  - changeSet:
+      id: 12-insert-test-source
+      author: escalop
+      changes:
+        - insert:
+            tableName: snapshot_sources
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 1
+              - column:
+                  name: year
+                  valueNumeric: 2024
+              - column:
+                  name: index
+                  valueNumeric: 1
+
+  - changeSet:
+      id: 13-insert-test-snapshot
+      author: escalop
+      changes:
+        - insert:
+            tableName: snapshots
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 1
+              - column:
+                  name: user_id
+                  valueNumeric: 1
+              - column:
+                  name: metrics
+                  value: '["one", "two", "three"]'
+              - column:
+                  name: analysis_type_id
+                  valueNumeric: 1
+              - column:
+                  name: document_name
+                  value: "test_report.pdf"
+              - column:
+                  name: local_date
+                  valueDate: "2024-01-15"
+              - column:
+                  name: source_id
+                  valueNumeric: 1
+
+  - changeSet:
+      id: 14-insert-test-snapshot-status
+      author: escalop
+      changes:
+        - insert:
+            tableName: snapshot_statuses
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 1
+              - column:
+                  name: snapshot_id
+                  valueNumeric: 1
+              - column:
+                  name: state
+                  value: "SAVED_IN_STORAGE"

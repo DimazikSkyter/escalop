@@ -1,7 +1,7 @@
-package ru.escalop.ru.escalop.common.parser
+package ru.escalop.common.parser
 
 import org.slf4j.LoggerFactory
-import ru.escalop.ru.escalop.common.model.HealthDataResult
+import ru.escalop.common.model.HealthDataResult
 import java.util.function.Function
 
 interface HealthDataValidator {

@@ -1,4 +1,4 @@
-package ru.escalop.ru.escalop.common.remotestorage
+package ru.escalop.common.remotestorage
 
 import io.ktor.client.*
 import io.ktor.client.request.*
@@ -7,10 +7,10 @@ import io.ktor.http.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import ru.escalop.ru.escalop.common.model.User
-import ru.escalop.ru.escalop.common.properties.YandexDiskStorageProperties
-import ru.escalop.ru.escalop.common.secure.SecureToken
-import ru.escalop.ru.escalop.common.secure.SecureTokenManager
+import ru.escalop.common.model.User
+import ru.escalop.common.properties.YandexDiskStorageProperties
+import ru.escalop.common.secure.SecureToken
+import ru.escalop.common.secure.SecureTokenManager
 
 class YandexDiskRemoteStorage private constructor(
     val client: HttpClient,

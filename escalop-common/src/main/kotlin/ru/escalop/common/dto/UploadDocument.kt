@@ -1,12 +1,15 @@
-package ru.escalop.ru.escalop.common.dto
+package ru.escalop.common.dto
 
-import ru.escalop.ru.escalop.common.model.AnalysisType
-import ru.escalop.ru.escalop.common.model.HealthDataResult
-import ru.escalop.ru.escalop.common.model.HealthSummary
+import kotlinx.serialization.Serializable
+import ru.escalop.common.model.AnalysisType
+import ru.escalop.common.model.HealthDataResult
+import ru.escalop.common.model.HealthSummary
 
 class UploadDocumentRequest {
 }
 
+
+@Serializable
 data class UploadDocumentResponse (
     val statusCode: Int,
     val message: String?,

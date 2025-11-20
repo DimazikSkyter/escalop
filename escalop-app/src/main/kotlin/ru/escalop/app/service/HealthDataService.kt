@@ -5,19 +5,20 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
 import ru.escalop.app.storage.StorageNamesCoordinator
-import ru.escalop.ru.escalop.common.dto.GetDataResponse
-import ru.escalop.ru.escalop.common.dto.UploadDocumentResponse
-import ru.escalop.ru.escalop.common.entity.AnalysisTypeEntity
-import ru.escalop.ru.escalop.common.entity.Snapshot
-import ru.escalop.ru.escalop.common.entity.SnapshotSource
-import ru.escalop.ru.escalop.common.entity.UserEntity
-import ru.escalop.ru.escalop.common.huggingface.FileMetricExtractorClient
-import ru.escalop.ru.escalop.common.model.*
-import ru.escalop.ru.escalop.common.remotestorage.RemoteStorage
-import ru.escalop.ru.escalop.common.repositories.AnalysisTypeRepository
-import ru.escalop.ru.escalop.common.repositories.SnapshotRepository
-import ru.escalop.ru.escalop.common.repositories.SnapshotSourceRepository
-import ru.escalop.ru.escalop.common.repositories.UserRepository
+import ru.escalop.common.dto.UploadHistoryItem
+import ru.escalop.common.dto.GetDataResponse
+import ru.escalop.common.dto.UploadDocumentResponse
+import ru.escalop.common.entity.AnalysisTypeEntity
+import ru.escalop.common.entity.Snapshot
+import ru.escalop.common.entity.SnapshotSource
+import ru.escalop.common.entity.UserEntity
+import ru.escalop.common.huggingface.FileMetricExtractorClient
+import ru.escalop.common.model.*
+import ru.escalop.common.remotestorage.RemoteStorage
+import ru.escalop.common.repositories.AnalysisTypeRepository
+import ru.escalop.common.repositories.SnapshotRepository
+import ru.escalop.common.repositories.SnapshotSourceRepository
+import ru.escalop.common.repositories.UserRepository
 import java.util.*
 
 interface HealthDataService {
@@ -26,6 +27,8 @@ interface HealthDataService {
     fun getDataByFilter(user: User, filter: Filter): GetDataResponse
 
     fun uploadNewDocument(user: User, document: Document): UploadDocumentResponse
+
+    fun getUploadHistory(user: User): List<UploadHistoryItem>
 }
 
 class HealthDataServiceImpl(
@@ -44,9 +47,14 @@ class HealthDataServiceImpl(
 
     override fun getDataByFilter(user: User, filter: Filter): GetDataResponse {
         val login = userRepository.findByLogin(user.name) ?: throw RuntimeException("User ${user.name} does not exist")
-        val snapshots = snapshotRepository.findByFilterAndUser(filter, login)
-        val fileNames: List<String> = snapshots.map { storageNamesCoordinator.generateStorageName(
-            it.analysisTypeEntity.toModel(), it.source!!.year, it.source!!.index) }
+        val snapshots: List<Snapshot> = snapshotRepository.findByFilterAndUser(filter, login)
+        val fileNames: List<String> = snapshots.map {
+            it.source?.let { source ->
+                storageNamesCoordinator.generateStorageName(
+                    it.analysisTypeEntity.toModel(), source.year, source.index
+                )
+            }
+        }.filterNotNull()
 
         logger.debug("Try to extract files {} for user {}", fileNames, user.name)
 
@@ -131,6 +139,30 @@ class HealthDataServiceImpl(
         //сохранили в удаленный источник
     }
 
+    override fun getUploadHistory(user: User): List<UploadHistoryItem> {
+        logger.info("getUploadHistory() called for user '{}'", user.name)
+
+        val userEntity: UserEntity = userRepository.findByLogin(user.name)
+            ?: throw RuntimeException("User ${user.name} does not exist")
+
+        logger.info("DB userEntity id={} login={}", userEntity.id, userEntity.login)
+
+        val snapshots = snapshotRepository.findHistoryByUser(userEntity)
+        logger.info("Found {} snapshots for user {}", snapshots.size, user.name)
+
+        return snapshots.map { snapshot ->
+            val fileName = snapshot.documentName
+            val format = fileName.substringAfterLast('.', "").lowercase().ifBlank { "unknown" }
+
+            UploadHistoryItem(
+                fileName = fileName,
+                format = format,
+                date = snapshot.localDate?.toString(),
+                analysisType = snapshot.analysisTypeEntity.code
+            )
+        }
+    }
+
     private fun saveNewSnapshot(documentName: String,
                                 parsedHealthData: HealthDataResult,
                                 userEntity: UserEntity): Snapshot {
@@ -139,10 +171,10 @@ class HealthDataServiceImpl(
                 "Failed to find correct analysisType, income is ${parsedHealthData.analysisType.name}")
         return snapshotRepository.save(Snapshot(
             null,
+            userEntity,
             analysisType,
             parsedHealthData.date,
             documentName,
-            userEntity,
             parsedHealthData.metrics.map { it.name }.joinToString())
         )
     }

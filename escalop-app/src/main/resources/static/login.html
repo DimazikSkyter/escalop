@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>Добро пожаловать</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+<div class="app-root">
+    <h1 class="title">Добро пожаловать в систему анализа мед. данных</h1>
+
+    <div class="form-card">
+        <h2 style="margin-top: 0; margin-bottom: 8px;">Вход</h2>
+
+        <!-- Ошибка авторизации -->
+        <p style="color: darkred; min-height: 20px; margin: 0 0 8px 0;">
+            {{error}}
+        </p>
+
+        <form method="post" action="/login">
+            <label class="label" for="login">Логин</label>
+            <input type="text" id="login" name="login" required />
+
+            <label class="label" for="password" style="margin-top: 8px;">Пароль</label>
+            <input type="password" id="password" name="password" required />
+
+            <button type="submit" class="button" style="margin-top: 12px;">
+                Войти
+            </button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

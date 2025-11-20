@@ -1,9 +1,9 @@
-package ru.escalop.ru.escalop.common.repositories
+package ru.escalop.common.repositories
 
 import jakarta.persistence.EntityManager
 import jakarta.persistence.criteria.Predicate
-import ru.escalop.ru.escalop.common.entity.AnalysisTypeEntity
-import ru.escalop.ru.escalop.common.entity.Snapshot
+import ru.escalop.common.entity.AnalysisTypeEntity
+import ru.escalop.common.entity.Snapshot
 
 interface AnalysisTypeRepository {
     fun getByName(name: String): AnalysisTypeEntity?
@@ -24,6 +24,6 @@ class AnalysisTypeRepositoryImpl(
         cq.select(root)
             .where(*predicates.toTypedArray())
 
-        return em.createQuery(cq).singleResult
+        return em.createQuery(cq).resultList.firstOrNull()
     }
 }

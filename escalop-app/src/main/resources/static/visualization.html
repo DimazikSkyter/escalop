@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>История загрузок и визуализация</title>
+
+    <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+
+<div class="app-root">
+    <h1 class="title">История загрузок</h1>
+
+    <!-- Блок загрузки нового файла -->
+    <div class="form-card" style="margin-bottom: 16px;">
+        <h2 style="margin-top: 0;">Загрузить новый файл</h2>
+
+        <input type="file" id="fileInput" />
+        <button id="uploadButton" class="button" style="margin-left: 8px;">
+            Загрузить
+        </button>
+
+        <p id="uploadStatus" style="margin-top: 8px; min-height: 20px;"></p>
+    </div>
+
+    <!-- Список загруженных файлов + пагинация -->
+    <div class="controls-card" style="margin-bottom: 16px;">
+        <h2 style="margin-top: 0;">Загруженные файлы</h2>
+
+        <div id="uploadsList"></div>
+
+        <div style="display: flex; align-items: center; margin-top: 12px; gap: 8px;">
+            <button id="prevPage" class="button">←</button>
+            <span id="pageInfo"></span>
+            <button id="nextPage" class="button">→</button>
+        </div>
+    </div>
+
+    <!-- Окно визуализации (пока пустое) -->
+    <div class="chart-card">
+        <h2 style="margin-top: 0;">Визуализация</h2>
+        <div id="visualizationPanel" style="min-height: 200px; display: flex; align-items: center; justify-content: center; opacity: 0.7;">
+            Здесь позже появится визуализация выбранного документа
+        </div>
+    </div>
+
+    <!-- Ссылка на старую визуализацию (если нужно) -->
+    <div style="margin-top: 16px;">
+        <a href="/visualization2">Перейти к старой странице визуализации (графики)</a>
+    </div>
+</div>
+<script src="/static/visualization.js"></script>
+
+
+<script>
+    window.addEventListener("load", () => {
+        console.log("inline init: calling loadUploadHistory()");
+        if (typeof loadUploadHistory === "function") {
+            loadUploadHistory().catch((err) => {
+                console.error("loadUploadHistory failed from inline script", err);
+                const el = document.getElementById("uploadsList");
+                if (el) {
+                    el.textContent = "Ошибка при загрузке истории.";
+                }
+            });
+        } else {
+            console.error("loadUploadHistory is not defined");
+        }
+    });
+</script>
+
+</body>
+</html>

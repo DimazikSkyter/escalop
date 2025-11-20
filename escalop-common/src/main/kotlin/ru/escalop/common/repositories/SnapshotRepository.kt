@@ -1,11 +1,11 @@
-package ru.escalop.ru.escalop.common.repositories
+package ru.escalop.common.repositories
 
 import jakarta.persistence.EntityManager
 import jakarta.persistence.criteria.JoinType
 import jakarta.persistence.criteria.Predicate
-import ru.escalop.ru.escalop.common.entity.*
-import ru.escalop.ru.escalop.common.model.AnalysisType
-import ru.escalop.ru.escalop.common.model.Filter
+import ru.escalop.common.entity.*
+import ru.escalop.common.model.AnalysisType
+import ru.escalop.common.model.Filter
 
 interface SnapshotRepository {
 
@@ -22,6 +22,8 @@ interface SnapshotRepository {
      * отсортировать по индексу
      */
     fun findByYearAndType(year: Int, analysisTypeEntity: AnalysisType, userEntity: UserEntity): List<Snapshot>
+
+    fun findHistoryByUser(userEntity: UserEntity): List<Snapshot>
 
     fun save(snapshot: Snapshot): Snapshot
 }
@@ -40,7 +42,7 @@ class SnapshotRepositoryImpl(
 
         val predicates = mutableListOf<Predicate>().apply {
 
-            add(cb.equal(root.get<UserEntity>("user").get<Long>("id"), userEntity.id))
+            add(cb.equal(root.get<UserEntity>("userEntity").get<Long>("id"), userEntity.id))
 
             add(cb.equal(statusJoin.get<SnapshotState>("state"), SnapshotState.SAVED_IN_STORAGE))
 
@@ -49,13 +51,11 @@ class SnapshotRepositoryImpl(
             }
 
             filter.analysisType?.let { analysisTypeModel ->
-                // join к сущности AnalysisType
-                val typeJoin = root.join<Snapshot, AnalysisTypeEntity>("analysisType")
-                // если в enum нет поля code, используем name/toString()
+                val typeJoin = root.join<Snapshot, AnalysisTypeEntity>("analysisTypeEntity")
                 add(
                     cb.equal(
                         typeJoin.get<String>("code"),
-                        analysisTypeModel.name  // или analysisTypeModel.code, если такое поле есть
+                        analysisTypeModel.name
                     )
                 )
             }
@@ -83,10 +83,10 @@ class SnapshotRepositoryImpl(
         val root = cq.from(Snapshot::class.java)
 
         val sourceJoin = root.join<Snapshot, SnapshotSource>("source")
-        val typeJoin = root.join<Snapshot, AnalysisTypeEntity>("analysisType")
+        val typeJoin = root.join<Snapshot, AnalysisTypeEntity>("analysisTypeEntity")
 
         val predicates = listOf(
-            cb.equal(root.get<UserEntity>("user").get<Long>("id"), userEntity.id),
+            cb.equal(root.get<UserEntity>("userEntity").get<Long>("id"), userEntity.id),
             cb.equal(sourceJoin.get<Int>("year"), year),
             cb.equal(
                 typeJoin.get<String>("code"),
@@ -96,6 +96,29 @@ class SnapshotRepositoryImpl(
 
         cq.select(root)
             .where(*predicates.toTypedArray())
+
+        return em.createQuery(cq).resultList
+    }
+
+    override fun findHistoryByUser(userEntity: UserEntity): List<Snapshot> {
+        val cb = em.criteriaBuilder
+        val cq = cb.createQuery(Snapshot::class.java)
+        val root = cq.from(Snapshot::class.java)
+
+        val statusJoin = root.join<Snapshot, SnapshotStatus>("statuses")
+
+        val predicates = listOf(
+            cb.equal(root.get<UserEntity>("userEntity").get<Long>("id"), userEntity.id),
+            cb.equal(statusJoin.get<SnapshotState>("state"), SnapshotState.SAVED_IN_STORAGE)
+        )
+
+        cq.select(root)
+            .distinct(true)
+            .where(*predicates.toTypedArray())
+            .orderBy(
+                cb.desc(root.get<java.time.LocalDate>("localDate")),
+                cb.desc(root.get<Long>("id"))
+            )
 
         return em.createQuery(cq).resultList
     }

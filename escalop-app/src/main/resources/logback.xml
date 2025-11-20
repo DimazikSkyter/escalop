@@ -1,0 +1,22 @@
+<configuration>
+
+    <!-- Формат логов -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level [%logger] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- DEBUG только для твоего кода -->
+    <logger name="ru.escalop" level="DEBUG"/>
+
+    <!-- DEBUG также можно включить для JPA/Hibernate -->
+    <!-- <logger name="org.hibernate.SQL" level="DEBUG"/> -->
+    <!-- <logger name="org.hibernate.type.descriptor.sql" level="TRACE"/> -->
+
+    <!-- Корневой логгер (оставим INFO, чтобы не было мусора) -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+</configuration>

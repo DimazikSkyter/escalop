@@ -1,4 +1,4 @@
-package ru.escalop.ru.escalop.common.secure
+package ru.escalop.common.secure
 
 class SecureToken(private val bytes: ByteArray) {
 

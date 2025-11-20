@@ -1,7 +1,7 @@
-package ru.escalop.ru.escalop.common.parser
+package ru.escalop.common.parser
 
-import ru.escalop.ru.escalop.common.huggingface.FileMetricExtractorClient
-import ru.escalop.ru.escalop.common.model.HealthDataResult
+import ru.escalop.common.huggingface.FileMetricExtractorClient
+import ru.escalop.common.model.HealthDataResult
 
 
 class HuggingFaceDataParser(

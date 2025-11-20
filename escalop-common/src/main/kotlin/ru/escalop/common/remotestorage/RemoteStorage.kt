@@ -1,4 +1,4 @@
-package ru.escalop.ru.escalop.common.remotestorage
+package ru.escalop.common.remotestorage
 
 interface RemoteStorage {
 

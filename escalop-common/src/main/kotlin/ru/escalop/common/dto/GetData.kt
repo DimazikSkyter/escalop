@@ -1,8 +1,7 @@
-package ru.escalop.ru.escalop.common.dto
+package ru.escalop.common.dto
 
 import kotlinx.serialization.Serializable
-import ru.escalop.ru.escalop.common.model.*
-import java.time.format.DateTimeFormatter
+import ru.escalop.common.model.*
 
 //todo перенести в app
 @Serializable

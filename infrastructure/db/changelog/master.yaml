@@ -1,0 +1,5 @@
+databaseChangeLog:
+  - include:
+      file: changelog/01-create-schema.yaml
+  - include:
+      file: changelog/02-insert-test-data.yaml

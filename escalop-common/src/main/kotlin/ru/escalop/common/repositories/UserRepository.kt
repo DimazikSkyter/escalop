@@ -1,6 +1,6 @@
-package ru.escalop.ru.escalop.common.repositories
+package ru.escalop.common.repositories
 
-import ru.escalop.ru.escalop.common.entity.UserEntity
+import ru.escalop.common.entity.UserEntity
 import jakarta.persistence.EntityManager
 
 interface UserRepository {

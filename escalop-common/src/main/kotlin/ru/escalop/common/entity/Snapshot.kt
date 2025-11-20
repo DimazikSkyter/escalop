@@ -1,4 +1,4 @@
-package ru.escalop.ru.escalop.common.entity
+package ru.escalop.common.entity
 
 
 import jakarta.persistence.*
@@ -13,11 +13,12 @@ class Snapshot(
     @Column(name = "id")
     open var id: Long? = null,
 
-    /**
-     * type_id from AnalysisType
-     */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    open var userEntity: UserEntity,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "analysis_type_id", nullable = false)
     open var analysisTypeEntity: AnalysisTypeEntity,
 
     @Column(name = "local_date", nullable = true)
@@ -26,18 +27,6 @@ class Snapshot(
     @Column(name = "document_name", nullable = false, length = 512)
     open var documentName: String,
 
-    /**
-     * user_id
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    open var userEntity: UserEntity,
-
-    /**
-     * metrics as json with can search by xpath
-     * columnDefinition можно подстроить под конкретную БД (json/jsonb/text и т.п.)
-     */
-    @Lob
     @Column(name = "metrics", columnDefinition = "jsonb")
     open var metrics: String
 ) {

@@ -1,0 +1,183 @@
+databaseChangeLog:
+  - changeSet:
+      id: 01-create-table-users
+      author: escalop
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: internal_key
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: login
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 02-create-table-analysis-types
+      author: escalop
+      changes:
+        - createTable:
+            tableName: analysis_types
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: code
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: description
+                  type: VARCHAR(255)
+
+  - changeSet:
+      id: 03-create-table-snapshot-sources
+      author: escalop
+      changes:
+        - createTable:
+            tableName: snapshot_sources
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: year
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: index
+                  type: INT
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 04-create-table-snapshots
+      author: escalop
+      changes:
+        - createTable:
+            tableName: snapshots
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: analysis_type_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: metrics
+                  type: JSONB
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: document_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: local_date
+                  type: DATE
+
+              - column:
+                  name: source_id
+                  type: BIGINT
+
+        - addForeignKeyConstraint:
+            baseTableName: snapshots
+            baseColumnNames: user_id
+            constraintName: fk_snapshots_user
+            referencedTableName: users
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            baseTableName: snapshots
+            baseColumnNames: analysis_type_id
+            constraintName: fk_snapshots_analysis_type
+            referencedTableName: analysis_types
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            baseTableName: snapshots
+            baseColumnNames: source_id
+            constraintName: fk_snapshots_source
+            referencedTableName: snapshot_sources
+            referencedColumnNames: id
+
+  - changeSet:
+      id: 05-create-table-snapshot-statuses
+      author: escalop
+      changes:
+        - createTable:
+            tableName: snapshot_statuses
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: snapshot_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: state
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        - addForeignKeyConstraint:
+            baseTableName: snapshot_statuses
+            baseColumnNames: snapshot_id
+            constraintName: fk_snapshot_statuses_snapshot
+            referencedTableName: snapshots
+            referencedColumnNames: id

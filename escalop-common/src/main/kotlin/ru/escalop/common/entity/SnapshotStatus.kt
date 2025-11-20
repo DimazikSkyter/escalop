@@ -1,4 +1,4 @@
-package ru.escalop.ru.escalop.common.entity
+package ru.escalop.common.entity
 
 import jakarta.persistence.*
 import java.time.OffsetDateTime
@@ -30,8 +30,8 @@ class SnapshotStatus(
     @JoinColumn(name = "snapshot_id", nullable = false)
     open var snapshot: Snapshot,
 
-    @Column(name = "timestamp", nullable = false)
-    open var timestamp: OffsetDateTime,
+    @Column(name = "created_at", nullable = false)
+    open var created_at: OffsetDateTime,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "state", nullable = false, length = 64)

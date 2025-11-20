@@ -1,4 +1,4 @@
-package ru.escalop.ru.escalop.common.entity
+package ru.escalop.common.entity
 
 
 import jakarta.persistence.*
@@ -13,21 +13,20 @@ import jakarta.persistence.*
 @Table(name = "snapshot_sources")
 class SnapshotSource(
 
-    /**
-     * Делаем snapshot_id первичным ключом и одновременно внешним ключом на Snapshot
-     */
+
     @Id
-    @Column(name = "snapshot_id")
-    open var snapshotId: Long? = null,
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    open var id: Long? = null,
 
     @OneToOne
     @MapsId
-    @JoinColumn(name = "snapshot_id")
+    @JoinColumn(name = "id")
     open var snapshot: Snapshot,
 
     @Column(name = "year", nullable = false)
     open var year: Int,
 
-    @Column(name = "idx", nullable = false)
+    @Column(name = "index", nullable = false)
     open var index: Int
 )

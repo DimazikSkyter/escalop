@@ -3,11 +3,11 @@ package ru.escalop.common.remotestorage
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import kotlinx.coroutines.runBlocking
-import ru.escalop.ru.escalop.common.model.User
-import ru.escalop.ru.escalop.common.properties.YandexDiskStorageProperties
-import ru.escalop.ru.escalop.common.remotestorage.YandexDiskRemoteStorage
-import ru.escalop.ru.escalop.common.secure.SecureToken
-import ru.escalop.ru.escalop.common.secure.SecureTokenManager
+import ru.escalop.common.model.User
+import ru.escalop.common.properties.YandexDiskStorageProperties
+import ru.escalop.common.remotestorage.YandexDiskRemoteStorage
+import ru.escalop.common.secure.SecureToken
+import ru.escalop.common.secure.SecureTokenManager
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertNotNull
@@ -40,7 +40,9 @@ class YandexDiskRemoteStorageTest {
     @Test
     fun testCreateFile() {
         runBlocking {
-            remoteStorage.writeData("somefile.json", "{\"employees\": [{\"firstName\": \"John\", \"lastName\": \"Doe\"}, {\"firstName\": \"Anna\", \"lastName\": \"Smith\"}]}")
+            remoteStorage.writeData("somefile.json", """{\"employees\": 
+                |[{\"firstName\": \"John\", \"lastName\": \"Doe\"},
+                | {\"firstName\": \"Anna\", \"lastName\": \"Smith\"}]}""".trimMargin().toByteArray())
         }
     }
 }

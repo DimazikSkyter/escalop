@@ -108,7 +108,8 @@ html, body {
 .button,
 input[type="text"],
 input[type="email"],
-input[type="file"] {
+input[type="file"],
+input[type="password"] {
     padding: 10px 14px;
     border-radius: 20px;
     border: 2px solid white;
@@ -152,3 +153,4 @@ a:hover {
     margin-top: 40px;
     border-radius: 6px;
 }
+

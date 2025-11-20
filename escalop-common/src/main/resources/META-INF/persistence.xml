@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             version="3.0"
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence
+                                 https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
+
+    <persistence-unit name="default">
+        <!-- Тут перечисляешь свои @Entity -->
+        <class>ru.escalop.common.entity.Snapshot</class>
+        <class>ru.escalop.common.entity.AnalysisTypeEntity</class>
+        <class>ru.escalop.common.entity.SnapshotSource</class>
+        <class>ru.escalop.common.entity.SnapshotState</class>
+        <class>ru.escalop.common.entity.UserEntity</class>
+
+        <properties>
+            <!-- JDBC можно не указывать, ты уже передаёшь DataSource через nonJtaDataSource -->
+            <property name="hibernate.show_sql" value="true"/>
+            <property name="hibernate.format_sql" value="true"/>
+        </properties>
+    </persistence-unit>
+
+</persistence>

@@ -1,8 +1,8 @@
-package ru.escalop.ru.escalop.common.parser
+package ru.escalop.common.parser
 
-import ru.escalop.ru.escalop.common.model.AnalysisType
-import ru.escalop.ru.escalop.common.model.HealthDataResult
-import ru.escalop.ru.escalop.common.model.Metric
+import ru.escalop.common.model.AnalysisType
+import ru.escalop.common.model.HealthDataResult
+import ru.escalop.common.model.Metric
 import java.time.LocalDate
 
 interface HealthDataParser {
