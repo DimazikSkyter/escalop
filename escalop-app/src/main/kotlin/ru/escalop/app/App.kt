@@ -5,7 +5,6 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.calllogging.*
@@ -24,12 +23,16 @@ import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
 import org.slf4j.LoggerFactory
 import ru.escalop.app.service.HealthDataService
+import ru.escalop.app.service.YandexOAuthService
+import ru.escalop.app.service.YandexOAuthServiceSettings
 import ru.escalop.common.dto.GetDataResponse
 import ru.escalop.common.dto.HealthDataResultDto
 import ru.escalop.common.dto.MetricDto
 import ru.escalop.common.entity.UserEntity
 import ru.escalop.common.model.Document
 import ru.escalop.common.model.User
+import ru.escalop.common.utils.codeChallengeS256
+import ru.escalop.common.utils.generateRandomString
 import java.io.ByteArrayOutputStream
 import java.sql.SQLException
 import java.time.LocalDate
@@ -39,7 +42,12 @@ fun main(args: Array<String>): Unit = EngineMain.main(args)
 
 @Serializable
 data class UserSession(val userId: Long, val login: String)
+
+@Serializable
+data class OAuthSession(val state: String, val codeVerifier: String)
+
 val logger = LoggerFactory.getLogger("MAIN")
+
 @Suppress("unused")
 fun Application.module() {
     logger.info("START MODULE")
@@ -68,6 +76,10 @@ fun Application.module() {
             cookie.path = "/"
             cookie.httpOnly = true
         }
+        cookie<OAuthSession>("oauth_tokens") {
+            cookie.path = "/"
+            cookie.httpOnly = true
+        }
     }
 
     val dataSource = get<HikariDataSource>()
@@ -82,9 +94,78 @@ fun Application.module() {
         get("/") {
             val loginError = call.request.queryParameters["error"]
             val html = loadResourceText("static/login.html").replace(
-                    "{{error}}",
-                    loginError?.let { "Неверный логин или пароль" } ?: "")
+                "{{error}}",
+                loginError?.let { "Неверный логин или пароль" } ?: "")
             call.respondText(html, ContentType.Text.Html)
+        }
+
+        // загрузка токена
+        get("/oauth/yandex/callback") {
+            val code = call.request.queryParameters["code"]
+            val state = call.request.queryParameters["state"]
+            val oauthSession = call.sessions.get<OAuthSession>()
+
+            if (code == null || state == null || oauthSession == null) {
+                call.respondText("OAuth data is missing", status = HttpStatusCode.BadRequest)
+                return@get
+            }
+
+            if (state != oauthSession.state) {
+                call.respondText("Invalid state", status = HttpStatusCode.BadRequest)
+                return@get
+            }
+
+            val oauthService = YandexOAuthService(
+                clientId = environment.config.property("yandex.oauth.clientId").getString(),
+                redirectUri = environment.config.property("yandex.oauth.redirectUri").getString(),
+                httpClient = get(),
+                settings = YandexOAuthServiceSettings(
+                    "https://oauth.yandex.ru/authorize",
+                    "https://oauth.yandex.com/token"
+                )
+            )
+
+            val tokens = oauthService.exchangeCode(
+                code = code,
+                codeVerifier = oauthSession.codeVerifier
+            )
+
+            // TODO: сохранить tokens.accessToken / tokens.refreshToken
+            // например в БД или в отдельное хранилище
+
+            call.sessions.clear<OAuthSession>()
+
+            call.respondText("Авторизация завершена. Можно вернуться в приложение.")
+        }
+
+        get("/oauth/yandex/start") {
+            val state = generateRandomString()
+            val codeVerifier = generateRandomString()
+            val codeChallenge = codeChallengeS256(codeVerifier)
+
+            call.sessions.set(
+                OAuthSession(
+                    state = state,
+                    codeVerifier = codeVerifier
+                )
+            )
+
+            val oauthService = YandexOAuthService(
+                clientId = environment.config.property("yandex.oauth.clientId").getString(),
+                redirectUri = environment.config.property("yandex.oauth.redirectUri").getString(),
+                httpClient = get(),
+                settings = YandexOAuthServiceSettings(
+                    "https://oauth.yandex.ru/authorize",
+                    "https://oauth.yandex.com/token"
+                )
+            )
+
+            val authorizeUrl = oauthService.buildAuthorizeUrl(
+                state = state,
+                codeChallenge = codeChallenge
+            )
+
+            call.respondRedirect(authorizeUrl)
         }
 
         // --- Обработка логина ---
@@ -164,6 +245,7 @@ fun Application.module() {
                                 baos.write(bytes)
                             }
                         }
+
                         else -> {}
                     }
                     part.dispose()

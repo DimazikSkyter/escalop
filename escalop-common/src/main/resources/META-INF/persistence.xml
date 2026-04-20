@@ -11,6 +11,7 @@
         <class>ru.escalop.common.entity.AnalysisTypeEntity</class>
         <class>ru.escalop.common.entity.SnapshotSource</class>
         <class>ru.escalop.common.entity.SnapshotState</class>
+        <class>ru.escalop.common.entity.SnapshotStatus</class>
         <class>ru.escalop.common.entity.UserEntity</class>
 
         <properties>
