@@ -14,6 +14,7 @@ data class OAuthTokens(
 data class YandexOAuthServiceSettings(
     val authorizationUrl: String,
     val tokenUrl: String,
+    val redirectUri: String,
 )
 
 @kotlinx.serialization.Serializable
@@ -30,7 +31,6 @@ data class TokenResponse(
 
 class YandexOAuthService(
     private val clientId: String,
-    private val redirectUri: String,
     private val httpClient: HttpClient,
     private val settings: YandexOAuthServiceSettings
 ) {
@@ -42,7 +42,7 @@ class YandexOAuthService(
         return URLBuilder(settings.authorizationUrl).apply {
             parameters.append("response_type", "code")
             parameters.append("client_id", clientId)
-            parameters.append("redirect_uri", "redirectUri")
+            parameters.append("redirect_uri", settings.redirectUri)
             parameters.append("state", state)
             parameters.append("code_challenge", codeChallenge)
             parameters.append("code_challenge_method", "S256")

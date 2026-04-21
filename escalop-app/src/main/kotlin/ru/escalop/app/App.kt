@@ -51,6 +51,12 @@ val logger = LoggerFactory.getLogger("MAIN")
 @Suppress("unused")
 fun Application.module() {
     logger.info("START MODULE")
+
+    println("io.ktor.development = ${System.getProperty("io.ktor.development")}")
+    println("application classloader = ${this::class.java.classLoader}")
+    println("thread context classloader = ${Thread.currentThread().contextClassLoader}")
+
+
     install(CallLogging)
     install(Compression) { gzip() }
     install(CORS) { anyHost(); allowNonSimpleContentTypes = true }
@@ -86,6 +92,8 @@ fun Application.module() {
     val healthDataService = get<HealthDataService>()
 
     routing {
+        val redirectUri = environment.config.property("yandex.oauth.redirectUri").getString()
+        println("redirectUri from config = $redirectUri")
 
         // Статика: /static/styles.css, /static/app.js, /static/index.html и т.д.
         staticResources("/static", "static")
@@ -101,27 +109,44 @@ fun Application.module() {
 
         // загрузка токена
         get("/oauth/yandex/callback") {
-            val code = call.request.queryParameters["code"]
-            val state = call.request.queryParameters["state"]
+            val error = call.request.queryParameters["error"]
+            val errorDescription = call.request.queryParameters["error_description"]
             val oauthSession = call.sessions.get<OAuthSession>()
 
-            if (code == null || state == null || oauthSession == null) {
+            if (error != null) {
+                call.respondText(
+                    "OAuth error: $error. $errorDescription",
+                    status = HttpStatusCode.BadRequest
+                )
+                return@get
+            }
+
+            val code = call.request.queryParameters["code"]
+            val state = call.request.queryParameters["state"]
+
+            if (code == null || state == null) {
                 call.respondText("OAuth data is missing", status = HttpStatusCode.BadRequest)
                 return@get
             }
 
-            if (state != oauthSession.state) {
+            if (state != oauthSession?.state) {
                 call.respondText("Invalid state", status = HttpStatusCode.BadRequest)
                 return@get
             }
 
             val oauthService = YandexOAuthService(
                 clientId = environment.config.property("yandex.oauth.clientId").getString(),
-                redirectUri = environment.config.property("yandex.oauth.redirectUri").getString(),
-                httpClient = get(),
+
+                httpClient = HttpClient(CIO) {
+                    install(ContentNegotiation) {
+                        json()
+                    }
+                },
                 settings = YandexOAuthServiceSettings(
                     "https://oauth.yandex.ru/authorize",
-                    "https://oauth.yandex.com/token"
+                    "https://oauth.yandex.com/token",
+                    redirectUri,
+
                 )
             )
 
@@ -152,11 +177,15 @@ fun Application.module() {
 
             val oauthService = YandexOAuthService(
                 clientId = environment.config.property("yandex.oauth.clientId").getString(),
-                redirectUri = environment.config.property("yandex.oauth.redirectUri").getString(),
-                httpClient = get(),
+                httpClient = HttpClient(CIO) {
+                    install(ContentNegotiation) {
+                        json()
+                    }
+                },
                 settings = YandexOAuthServiceSettings(
                     "https://oauth.yandex.ru/authorize",
-                    "https://oauth.yandex.com/token"
+                    "https://oauth.yandex.com/token",
+                    redirectUri
                 )
             )
 

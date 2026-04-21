@@ -49,12 +49,12 @@ class HealthDataServiceTest {
         val snapshots: List<Snapshot> = listOf(
             Snapshot(
                 1,
+                userEntity,
                 AnalysisTypeEntity(1,
                     AnalysisType.BLOOD_GENERAL.name,
                     "Some description"),
                 localDate,
                 fileName,
-                userEntity,
                 "[\"aaa\", \"aab\", \"bca\", \"cab\", \"cca\"]"
             )
         )

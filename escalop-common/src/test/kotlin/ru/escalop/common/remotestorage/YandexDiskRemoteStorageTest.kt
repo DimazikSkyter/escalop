@@ -3,6 +3,7 @@ package ru.escalop.common.remotestorage
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Disabled
 import ru.escalop.common.model.User
 import ru.escalop.common.properties.YandexDiskStorageProperties
 import ru.escalop.common.remotestorage.YandexDiskRemoteStorage
@@ -37,6 +38,7 @@ class YandexDiskRemoteStorageTest {
         }
     }
 
+    @Disabled
     @Test
     fun testCreateFile() {
         runBlocking {

@@ -22,7 +22,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
 
     // Hibernate ORM (JPA implementation)
-    implementation("org.hibernate.orm:hibernate-core:6.4.4.Final")
+    implementation("org.hibernate.orm:hibernate-core:6.5.2.Final")
 
     // JPA API
     implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")

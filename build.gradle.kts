@@ -13,7 +13,7 @@ repositories {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(23)
 }
 
 subprojects {
@@ -23,7 +23,7 @@ subprojects {
 
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_21) // или JVM_25, если доступно в твоей версии плагина
+            jvmTarget.set(JvmTarget.JVM_23) // или JVM_25, если доступно в твоей версии плагина
         }
     }
 }
