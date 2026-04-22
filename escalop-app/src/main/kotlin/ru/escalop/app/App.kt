@@ -1,6 +1,8 @@
 package ru.escalop.app
 
 import com.zaxxer.hikari.HikariDataSource
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
@@ -31,6 +33,7 @@ import ru.escalop.common.dto.MetricDto
 import ru.escalop.common.entity.UserEntity
 import ru.escalop.common.model.Document
 import ru.escalop.common.model.User
+import ru.escalop.common.secure.SecureTokenManager
 import ru.escalop.common.utils.codeChallengeS256
 import ru.escalop.common.utils.generateRandomString
 import java.io.ByteArrayOutputStream
@@ -109,6 +112,9 @@ fun Application.module() {
 
         // загрузка токена
         get("/oauth/yandex/callback") {
+            val userSession = call.sessions.get<UserSession>()
+                ?: return@get call.respond(HttpStatusCode.Unauthorized, "User session is missing")
+
             val error = call.request.queryParameters["error"]
             val errorDescription = call.request.queryParameters["error_description"]
             val oauthSession = call.sessions.get<OAuthSession>()
@@ -124,12 +130,12 @@ fun Application.module() {
             val code = call.request.queryParameters["code"]
             val state = call.request.queryParameters["state"]
 
-            if (code == null || state == null) {
+            if (code == null || state == null || oauthSession == null) {
                 call.respondText("OAuth data is missing", status = HttpStatusCode.BadRequest)
                 return@get
             }
 
-            if (state != oauthSession?.state) {
+            if (state != oauthSession.state) {
                 call.respondText("Invalid state", status = HttpStatusCode.BadRequest)
                 return@get
             }
@@ -155,15 +161,22 @@ fun Application.module() {
                 codeVerifier = oauthSession.codeVerifier
             )
 
-            // TODO: сохранить tokens.accessToken / tokens.refreshToken
-            // например в БД или в отдельное хранилище
+            val secureTokenManager = get<SecureTokenManager>()
+            secureTokenManager.saveToken(
+                user = User(userSession.login),
+                accessToken = tokens.access_token,
+                refreshToken = tokens.refresh_token
+            )
 
             call.sessions.clear<OAuthSession>()
-
             call.respondText("Авторизация завершена. Можно вернуться в приложение.")
+            call.respondRedirect("/visualization")
         }
 
         get("/oauth/yandex/start") {
+            val userSession = call.sessions.get<UserSession>()
+                ?: return@get call.respondRedirect("/")
+
             val state = generateRandomString()
             val codeVerifier = generateRandomString()
             val codeChallenge = codeChallengeS256(codeVerifier)

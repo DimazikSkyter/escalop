@@ -2,12 +2,36 @@ package ru.escalop.common.secure
 
 import io.ktor.utils.io.core.*
 import ru.escalop.common.model.User
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.suspendCoroutine
 import kotlin.text.toByteArray
 
 open class SecureTokenManager {
 
-    open suspend fun getTokenByUser(user: User): SecureToken {
-        return SecureToken("y0__xC4_IEfGI65OyCzuo6JFTDQpPizCDLgofWKZTUH62OCE9w6JoGAhHXL".toByteArray())
+    private val accessTokens = ConcurrentHashMap<String, SecureToken>()
+    private val refreshTokens = ConcurrentHashMap<String, SecureToken>()
+
+
+    open fun saveToken(user: User,
+                       accessToken: String,
+                       refreshToken: String?) {
+        accessTokens[user.name] = SecureToken(accessToken.toByteArray(Charsets.UTF_8))
+        refreshToken?.let {
+            refreshTokens[user.name] = SecureToken(it.toByteArray(Charsets.UTF_8))
+        }
+    }
+
+    fun getTokenByUser(user: User): SecureToken {
+        return accessTokens[user.name]
+            ?: error("Token for user ${user.name} not found")
+    }
+
+    fun getRefreshToken(user: User): SecureToken? {
+        return refreshTokens[user.name]
+    }
+
+    fun clearToken(user: User) {
+        accessTokens.remove(user.name)
+        refreshTokens.remove(user.name)
     }
 }
