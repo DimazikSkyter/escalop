@@ -5,8 +5,10 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.http.*
+import kotlinx.serialization.json.JsonElement
 import ru.escalop.common.huggingface.FileMetricExtractorClient
 import ru.escalop.common.model.HealthDataResult
+import java.time.LocalDate
 
 //class HuggingFaceClientImpl(
 //    private val httpClient: HttpClient,
@@ -110,10 +112,11 @@ class HuggingFaceClientImpl(
 
     override suspend fun parseHealthData(
         fileName: String,
+        date: LocalDate,
         fileBytes: ByteArray,
     ): HealthDataResult {
         val contentType: ContentType = guessContentType(fileName)
-
+        println("Try to call $baseUrl$endpointPath")
         val response = httpClient.post("$baseUrl$endpointPath") {
             // если токен не нужен — можно вообще удалить этот блок
             if (apiToken.isNotBlank()) {
@@ -150,8 +153,9 @@ class HuggingFaceClientImpl(
                 )
             )
         }
+        val rawBody = response.body<Map<String, Map<String, JsonElement>>>()
 
-        return response.body()
+        return HealthDataResult.fromAnalysisDocument(fileName, date, rawBody)
     }
 
     private fun guessContentType(fileName: String): ContentType {

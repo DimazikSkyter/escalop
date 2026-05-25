@@ -1,18 +1,20 @@
 package ru.escalop.common.remotestorage
 
+import ru.escalop.common.model.User
+
 interface RemoteStorage {
 
-    suspend fun readData(path: String): String?
+    suspend fun readData(user: User, path: String): String?
 
-    suspend fun writeData(path: String, data: ByteArray): Unit
+    suspend fun writeData(user: User, path: String, data: ByteArray): Unit
 
     companion object {
         val NONE = object : RemoteStorage {
-            override suspend fun readData(path: String): String? {
+            override suspend fun readData(user: User, path: String): String? {
                 TODO("Not yet implemented")
             }
 
-            override suspend fun writeData(path: String, data: ByteArray) {
+            override suspend fun writeData(user: User, path: String, data: ByteArray) {
                 TODO("Not yet implemented")
             }
         }

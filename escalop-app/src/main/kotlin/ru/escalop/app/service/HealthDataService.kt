@@ -5,9 +5,9 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
 import ru.escalop.app.storage.StorageNamesCoordinator
-import ru.escalop.common.dto.UploadHistoryItem
 import ru.escalop.common.dto.GetDataResponse
 import ru.escalop.common.dto.UploadDocumentResponse
+import ru.escalop.common.dto.UploadHistoryItem
 import ru.escalop.common.entity.AnalysisTypeEntity
 import ru.escalop.common.entity.Snapshot
 import ru.escalop.common.entity.SnapshotSource
@@ -19,7 +19,9 @@ import ru.escalop.common.repositories.AnalysisTypeRepository
 import ru.escalop.common.repositories.SnapshotRepository
 import ru.escalop.common.repositories.SnapshotSourceRepository
 import ru.escalop.common.repositories.UserRepository
+import java.time.LocalDate
 import java.util.*
+import kotlin.math.log
 
 interface HealthDataService {
 
@@ -62,7 +64,7 @@ class HealthDataServiceImpl(
             val result: String? = runBlocking {
                 try {
                     withTimeout(60000) {
-                        remoteStorage.readData(it)
+                        remoteStorage.readData(user, it)
                     }
                 } catch (e: Exception) {
                     logger.error("Failed to read data", e)
@@ -75,19 +77,22 @@ class HealthDataServiceImpl(
         return GetDataResponse.fromHealthDataResult(
             200,
             "Result with required filters",
-            healthParts)
+            healthParts
+        )
     }
 
     //todo добавить стейты
     override fun uploadNewDocument(user: User, document: Document): UploadDocumentResponse {
+        logger.info("Upload new document ${document.name} for user ${user.name}")
         val userEntity: UserEntity = userRepository.findByLogin(user.name)
             ?: throw RuntimeException("User ${user.name} does not exist")
         var parsedHealthData: HealthDataResult? = null
         //получили новый документ
         runBlocking {
             try {
-                withTimeout(60000) {
-                    parsedHealthData = fileMetricExtractorClient.parseHealthData(document.name, document.body)
+                withTimeout(5 * 60000) {
+                    parsedHealthData = fileMetricExtractorClient.parseHealthData(document.name, LocalDate.now(), document.body)
+                    //LocalDate.now() Поменять на правильную
                 }
             } catch (e: Exception) {
                 logger.error("Failed to extract metrics from file extractor service", e)
@@ -102,8 +107,8 @@ class HealthDataServiceImpl(
         val healthDataResults: MutableList<HealthDataResult> = mutableListOf()
         val snapshotSource: SnapshotSource = if (snapshots.isEmpty()) {
             val newSnapshot: Snapshot = saveNewSnapshot(document.name, parsedHealthData!!, userEntity)
-            val snapshotSource: SnapshotSource = snapshotSourceRepository
-                .save(SnapshotSource(newSnapshot.id, newSnapshot, year, 1))
+            var snapshotSource: SnapshotSource = SnapshotSource(newSnapshot.id, newSnapshot, year, 1)
+//            snapshotSource = snapshotSourceRepository.save(snapshotSource)
             snapshotSource
         } else {
             val newSnapshot: Snapshot = saveNewSnapshot(document.name, parsedHealthData!!, userEntity)
@@ -111,6 +116,7 @@ class HealthDataServiceImpl(
             snapshotSourceRepository.save(SnapshotSource(newSnapshot.id, newSnapshot, year, source.index))
             runBlocking {
                 remoteStorage.readData(
+                    user,
                     storageNamesCoordinator.generateStorageName(
                         parsedHealthData!!.analysisType,
                         source.year,
@@ -125,15 +131,18 @@ class HealthDataServiceImpl(
         healthDataResults.add(parsedHealthData!!)
         return runBlocking {
             try {
-                return@runBlocking withTimeout(60000) {
-                    saveInFile(healthDataResults,
+                return@runBlocking withTimeout(5 * 60000) {
+                    saveInFile(
+                        user,
+                        healthDataResults,
                         parsedHealthData!!.analysisType,
-                        snapshotSource)
+                        snapshotSource
+                    )
                     return@withTimeout UploadDocumentResponse(200, "Success", null)
                 }
             } catch (e: Exception) {
                 logger.error("Failed to save data", e)
-                return@runBlocking UploadDocumentResponse(500, null,  "Failed to save data")
+                return@runBlocking UploadDocumentResponse(500, null, "Failed to save data")
             }
         }
         //сохранили в удаленный источник
@@ -163,33 +172,40 @@ class HealthDataServiceImpl(
         }
     }
 
-    private fun saveNewSnapshot(documentName: String,
-                                parsedHealthData: HealthDataResult,
-                                userEntity: UserEntity): Snapshot {
+    private fun saveNewSnapshot(
+        documentName: String,
+        parsedHealthData: HealthDataResult,
+        userEntity: UserEntity
+    ): Snapshot {
         val analysisType: AnalysisTypeEntity = analysisTypeRepository.getByName(parsedHealthData.analysisType.name)
             ?: throw RuntimeException(
-                "Failed to find correct analysisType, income is ${parsedHealthData.analysisType.name}")
-        return snapshotRepository.save(Snapshot(
-            null,
-            userEntity,
-            analysisType,
-            parsedHealthData.date,
-            documentName,
-            parsedHealthData.metrics.map { it.name }.joinToString())
+                "Failed to find correct analysisType, income is ${parsedHealthData.analysisType.name}"
+            )
+        return snapshotRepository.save(
+            Snapshot(
+                null,
+                userEntity,
+                analysisType,
+                parsedHealthData.date,
+                documentName,
+                parsedHealthData.metrics.map { it.name }.joinToString()
+            )
         )
     }
 
     private suspend fun saveInFile(
-                           healthDataResults: List<HealthDataResult>,
-                           analysisType: AnalysisType,
-                           source: SnapshotSource) {
+        user: User,
+        healthDataResults: List<HealthDataResult>,
+        analysisType: AnalysisType,
+        source: SnapshotSource
+    ) {
         val storageData = StorageHealthPart.fromHealthDataResult(
             healthDataResults,
             analysisType.name,
             source
         )
         val path: String = storageNamesCoordinator.generateStorageName(analysisType, source.year, source.index)
-        remoteStorage.writeData(path, storageData.saveAsJson())
+        remoteStorage.writeData(user, path, storageData.saveAsJson())
     }
 
     private fun currentYear(): Int {

@@ -15,27 +15,26 @@ import ru.escalop.common.secure.SecureTokenManager
 class YandexDiskRemoteStorage private constructor(
     val client: HttpClient,
     @Transient
-    private val userToken: SecureToken,
+    private val secureTokenManager: SecureTokenManager,
     private val properties: YandexDiskStorageProperties,
-    user: User
 ) : RemoteStorage {
 
-    private suspend fun checkConnectionAndFolder(): YandexDiskRemoteStorage {
+    private suspend fun checkConnectionAndFolder(user: User) {
         val path: String = properties.escalopPath
-        val authHeader: String = "OAuth ${userToken.asString()}"
+        val authHeader: String = "OAuth ${secureTokenManager.getTokenByUser(user).asString()}"
         val meta = client.get("https://cloud-api.yandex.net/v1/disk/resources") {
             header(HttpHeaders.Authorization, authHeader)
             parameter("path", path)
         }
         when (meta.status.value) {
-            200 -> return this
+            200 -> return
             404 -> {
                 val create = client.put("https://cloud-api.yandex.net/v1/disk/resources") {
                     header(HttpHeaders.Authorization, authHeader)
                     parameter("path", path)
                 }
                 if (create.status == HttpStatusCode.Created || create.status == HttpStatusCode.Conflict) {
-                    return this
+                    return
                 }
                 throw RuntimeException("Create dir failed: ${create.status} ${create.bodyAsText()}")
             }
@@ -46,9 +45,10 @@ class YandexDiskRemoteStorage private constructor(
         }
     }
 
-    override suspend fun readData(path: String): String {
+    override suspend fun readData(user: User, path: String): String {
         val fullPath: String = properties.escalopPath + path
-        val href = getDownloadHref(fullPath, false)
+        val userToken: String = secureTokenManager.getTokenByUser(user).asString()
+        val href = getDownloadHref(userToken, fullPath, false)
         return client.get(href).let {
             val body: String = it.bodyAsText()
             if (it.status.isSuccess()) {
@@ -59,21 +59,22 @@ class YandexDiskRemoteStorage private constructor(
         }
     }
 
-    override suspend fun writeData(path: String, data: ByteArray) {
+    override suspend fun writeData(user: User, path: String, data: ByteArray) {
         val fullPath: String = properties.escalopPath + path
-        val href = getUploadHref(fullPath, true)
+        val userToken: String = secureTokenManager.getTokenByUser(user).asString()
+        val href = getUploadHref(userToken, fullPath, true)
 
         val putResp = client.put(href) { setBody(data) }
         val putBody = putResp.bodyAsText()
         if (putResp.status.isSuccess()) {
-            return validate(fullPath)
+            return validate(userToken, fullPath)
         }
         throw RuntimeException("Upload failed: ${putResp.status} $putBody")
     }
 
-    private suspend fun validate(fullPath: String) {
+    private suspend fun validate(userToken: String, fullPath: String) {
         val metaResp = client.get("https://cloud-api.yandex.net/v1/disk/resources") {
-            header(HttpHeaders.Authorization, "OAuth ${userToken.asString()}")
+            header(HttpHeaders.Authorization, "OAuth $userToken")
             parameter("path", fullPath)
         }
         if (metaResp.status.isSuccess()) {
@@ -83,17 +84,17 @@ class YandexDiskRemoteStorage private constructor(
         throw RuntimeException("Meta check failed: ${metaResp.status} ${metaResp.bodyAsText()}")
     }
 
-    private suspend fun getDownloadHref(path: String, overwrite: Boolean?): String {
-        return getHref(path, overwrite, "download")
+    private suspend fun getDownloadHref(userToken: String, path: String, overwrite: Boolean?): String {
+        return getHref(userToken, path, overwrite, "download")
     }
 
-    private suspend fun getUploadHref(path: String, overwrite: Boolean?): String {
-        return getHref(path, overwrite, "upload")
+    private suspend fun getUploadHref(userToken: String, path: String, overwrite: Boolean?): String {
+        return getHref(userToken, path, overwrite, "upload")
     }
 
-    private suspend fun getHref(path: String, overwrite: Boolean?, suffix: String): String {
+    private suspend fun getHref(userToken: String, path: String, overwrite: Boolean?, suffix: String): String {
         val resp = client.get("https://cloud-api.yandex.net/v1/disk/resources/$suffix") {
-            header(HttpHeaders.Authorization, "OAuth ${userToken.asString()}")
+            header(HttpHeaders.Authorization, "OAuth $userToken")
             parameter("path", path)
             overwrite?.let { parameter("overwrite", it) }
         }
@@ -109,16 +110,14 @@ class YandexDiskRemoteStorage private constructor(
     companion object {
         suspend fun create(
             client: HttpClient,
-            user: User,
             secureTokenManager: SecureTokenManager,
             properties: YandexDiskStorageProperties
         ): YandexDiskRemoteStorage {
             return YandexDiskRemoteStorage(
                 client,
-                secureTokenManager.getTokenByUser(user),
-                properties,
-                user
-            ).checkConnectionAndFolder()
+                secureTokenManager,
+                properties
+            )
         }
     }
 }

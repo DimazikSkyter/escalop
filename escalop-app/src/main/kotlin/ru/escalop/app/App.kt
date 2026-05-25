@@ -11,7 +11,9 @@ import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.plugins.compression.*
-import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation as ServerContentNegotiation
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
+import io.ktor.client.engine.cio.CIO
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -63,7 +65,7 @@ fun Application.module() {
     install(CallLogging)
     install(Compression) { gzip() }
     install(CORS) { anyHost(); allowNonSimpleContentTypes = true }
-    install(ContentNegotiation) {
+    install(ServerContentNegotiation) {
         json(Json {
             prettyPrint = true
             encodeDefaults = true
@@ -144,7 +146,7 @@ fun Application.module() {
                 clientId = environment.config.property("yandex.oauth.clientId").getString(),
 
                 httpClient = HttpClient(CIO) {
-                    install(ContentNegotiation) {
+                    install(ClientContentNegotiation) {
                         json()
                     }
                 },
@@ -167,9 +169,8 @@ fun Application.module() {
                 accessToken = tokens.access_token,
                 refreshToken = tokens.refresh_token
             )
-
+            println("Income token ${tokens.access_token}")
             call.sessions.clear<OAuthSession>()
-            call.respondText("Авторизация завершена. Можно вернуться в приложение.")
             call.respondRedirect("/visualization")
         }
 
@@ -191,7 +192,7 @@ fun Application.module() {
             val oauthService = YandexOAuthService(
                 clientId = environment.config.property("yandex.oauth.clientId").getString(),
                 httpClient = HttpClient(CIO) {
-                    install(ContentNegotiation) {
+                    install(ClientContentNegotiation) {
                         json()
                     }
                 },

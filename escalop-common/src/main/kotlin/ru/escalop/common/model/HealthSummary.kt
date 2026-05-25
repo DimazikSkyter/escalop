@@ -2,6 +2,8 @@ package ru.escalop.common.model
 
 import ru.escalop.common.entity.SnapshotSource
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 
 data class HealthSummary(
     val filter: String?,
@@ -42,7 +44,9 @@ data class StorageHealthPart(
     }
 
     companion object {
-        private val OBJECT_MAPPER = ObjectMapper()
+        val OBJECT_MAPPER: ObjectMapper = ObjectMapper()
+            .registerModule(JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
 
         fun fromHealthDataResult(results: List<HealthDataResult>,
                                  analysisType: String,

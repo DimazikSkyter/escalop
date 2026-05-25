@@ -21,7 +21,7 @@ open class SecureTokenManager {
         }
     }
 
-    fun getTokenByUser(user: User): SecureToken {
+    open fun getTokenByUser(user: User): SecureToken {
         return accessTokens[user.name]
             ?: error("Token for user ${user.name} not found")
     }

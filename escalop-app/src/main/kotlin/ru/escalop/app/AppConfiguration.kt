@@ -3,11 +3,16 @@ package ru.escalop.app
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityManagerFactory
 import jakarta.persistence.Persistence
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 import org.koin.dsl.module
 import ru.escalop.app.huggingface.HuggingFaceClientImpl
 import ru.escalop.app.properties.HuggingFaceClientProperties
@@ -28,7 +33,22 @@ import javax.sql.DataSource
 val appModule = module {
 
     // инфраструктура
-    single { HttpClient() }  // общий httpClient для всего, если ок
+    single {
+        HttpClient(CIO) {
+            install(HttpTimeout) {
+                requestTimeoutMillis = 5 * 60 * 1000L
+                connectTimeoutMillis = 5 * 60 * 1000L
+                socketTimeoutMillis = 5 * 60 * 1000L
+            }
+            install(ContentNegotiation) {
+                json(
+                    Json {
+                        ignoreUnknownKeys = true
+                    }
+                )
+            }
+        }
+    }
 
     single { User("name") } // TODO: потом заменить на реального юзера/токен
 
@@ -41,7 +61,6 @@ val appModule = module {
         runBlocking {
             YandexDiskRemoteStorage.create(
                 client = get(),
-                user = get(),
                 secureTokenManager = get(),
                 properties = get()
             )

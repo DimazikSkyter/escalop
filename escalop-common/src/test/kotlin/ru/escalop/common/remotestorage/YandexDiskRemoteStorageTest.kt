@@ -25,24 +25,25 @@ class YandexDiskRemoteStorageTest {
         val secureToken = SecureToken(token.toByteArray())
 
         val yandexDiskStorageProperties = YandexDiskStorageProperties("/escalop/")
-        val user: User = User("Some name")
+
 
         val secureTokenManager: SecureTokenManager = object : SecureTokenManager() {
-            override suspend fun getTokenByUser(user: User): SecureToken {
+            override fun getTokenByUser(user: User): SecureToken {
                 return secureToken
             }
         } as SecureTokenManager
 
         runBlocking {
-            remoteStorage = YandexDiskRemoteStorage.create(client, user, secureTokenManager, yandexDiskStorageProperties, )
+            remoteStorage = YandexDiskRemoteStorage.create(client, secureTokenManager, yandexDiskStorageProperties, )
         }
     }
 
     @Disabled
     @Test
     fun testCreateFile() {
+        val user: User = User("Some name")
         runBlocking {
-            remoteStorage.writeData("somefile.json", """{\"employees\": 
+            remoteStorage.writeData(user,"somefile.json", """{\"employees\": 
                 |[{\"firstName\": \"John\", \"lastName\": \"Doe\"},
                 | {\"firstName\": \"Anna\", \"lastName\": \"Smith\"}]}""".trimMargin().toByteArray())
         }

@@ -7,11 +7,11 @@ import java.time.LocalDate
 
 interface HealthDataParser {
 
-    suspend fun parse(name: String, fileBytes: ByteArray): HealthDataResult
+    suspend fun parse(name: String, date: LocalDate, fileBytes: ByteArray): HealthDataResult
 
     companion object {
         val NONE: HealthDataParser = object : HealthDataParser {
-            override suspend fun parse(name: String, fileBytes: ByteArray): HealthDataResult {
+            override suspend fun parse(name: String, date: LocalDate, fileBytes: ByteArray): HealthDataResult {
                 TODO("Not yet implemented")
             }
         }
@@ -21,10 +21,12 @@ interface HealthDataParser {
 class MockHealthDataParser (
     private val fakeMetrics: List<Metric>
 ) : HealthDataParser {
-    override suspend fun parse(name: String, fileBytes: ByteArray): HealthDataResult {
+    override suspend fun parse(name: String,
+                               date: LocalDate,
+                               fileBytes: ByteArray): HealthDataResult {
         return HealthDataResult(
             name,
-            LocalDate.now(),
+            date,
             AnalysisType.ANOTHER,
             fakeMetrics
         )
